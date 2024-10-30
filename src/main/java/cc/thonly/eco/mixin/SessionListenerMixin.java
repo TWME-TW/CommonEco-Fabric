@@ -56,8 +56,8 @@ public abstract class SessionListenerMixin implements ServerPlayConnectionEvents
                 var8.sendMessage((Text)TrT.of("enclosure.message.set_pos_1", var7));
                 if(session.getPos1() != null && session.getPos2() != null) {
                     int size = calculateVolume(session.getPos1(),session.getPos2());
-                    var8.sendMessage(Text.literal("§e选区大小: " + (size)));
-                    var8.sendMessage(Text.literal("§e预计花费: " + (size * ConfigObj.eco_block_ratio)));
+                    var8.sendMessage(Text.translatable("message.enclosure.sel_size",(size)));
+                    var8.sendMessage(Text.translatable("message.enclosure.sel_cost",size * ConfigObj.eco_block_ratio));
                 }
             }
 
@@ -98,8 +98,8 @@ public abstract class SessionListenerMixin implements ServerPlayConnectionEvents
                 var7.sendMessage((Text) TrT.of("enclosure.message.set_pos_2", var8));
                 if(session.getPos1() != null && session.getPos2() != null) {
                     int size = calculateVolume(session.getPos1(),session.getPos2());
-                    var7.sendMessage(Text.literal("§e选区大小: " + (size)));
-                    var7.sendMessage(Text.literal("§e预计花费: " + (size * ConfigObj.eco_block_ratio)));
+                    var7.sendMessage(Text.translatable("message.enclosure.sel_size",(size)));
+                    var7.sendMessage(Text.translatable("message.enclosure.sel_cost",size * ConfigObj.eco_block_ratio));
                 }
             }
 

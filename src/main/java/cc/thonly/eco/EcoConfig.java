@@ -34,6 +34,7 @@ public class EcoConfig {
     }
 
     public static void load() {
+        CommonEconomy.LOGGER.info("Loading user data");
         File configFile = new File(config_path.toUri());
         try {
             if (!configFile.exists()) {

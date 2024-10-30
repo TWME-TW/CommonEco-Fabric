@@ -85,8 +85,8 @@ public class CommandEco {
         Item handItem = player.getMainHandStack().getItem();
         double amount = DoubleArgumentType.getDouble(context,"amount");
         if(amount == 0) return 1;
-        CurrencyRegistry.register(handItem,amount);
-        context.getSource().sendMessage(Text.literal("§6货币注册成功"));
+        CurrencyRegistry.register(handItem, amount);
+        context.getSource().sendFeedback(() -> Text.translatable("message.currency.registered"), false);
         return 0;
     }
     public static int unregister(CommandContext<ServerCommandSource> context) {
@@ -94,7 +94,7 @@ public class CommandEco {
         PlayerEntity player = context.getSource().getPlayer();
         Item handItem = player.getMainHandStack().getItem();
         CurrencyRegistry.unregister(handItem);
-        context.getSource().sendMessage(Text.literal("§6货币取消注册成功"));
+        context.getSource().sendFeedback(() -> Text.translatable("message.currency.unregistered"), false);
         return 0;
     }
     public static int store(CommandContext<ServerCommandSource> context) {
@@ -111,15 +111,15 @@ public class CommandEco {
             if (CurrencyRegistry.getRegistry().containsKey(item_id.toString())) {
                 EcoItem ecoItem = CurrencyRegistry.getRegistry().get(item_id.toString());
                 if (item_amount > amount) {
-                    playerEntity.sendMessage(Text.literal("§c物品数量不足！填写的数量: " + item_amount + ", 当前数量: " + amount), false);
+                    playerEntity.sendMessage(Text.translatable("message.insufficient.items", item_amount, amount), false);
                     return 0;
                 }
 
                 EcoAPI.addAmount(playerEntity, ecoItem.getValue() * item_amount);
                 handStack.decrement(item_amount);
-                playerEntity.sendMessage(Text.literal("§b成功存入了" + ecoItem.getValue() * item_amount), false);
+                playerEntity.sendMessage(Text.translatable("message.store.success", ecoItem.getValue() * item_amount), false);
             } else {
-                playerEntity.sendMessage(Text.literal("§c不存在此类型的货币" + item_amount), false);
+                playerEntity.sendMessage(Text.translatable("message.currency.not.exists", item_amount), false);
             }
         }
         return 0;
@@ -135,8 +135,7 @@ public class CommandEco {
             sortedEntries.sort((entry1, entry2) -> Double.compare(entry2.getValue().getValue(), entry1.getValue().getValue()));
 
             double totalCost = 0;
-
-            StringBuilder message = new StringBuilder("成功提取：\n");
+            StringBuilder message = new StringBuilder(Text.translatable("message.withdraw.success").getString()).append("\n");
 
             for (Map.Entry<String, EcoItem> entry : sortedEntries) {
                 Item item = entry.getValue().getItem();
@@ -155,33 +154,29 @@ public class CommandEco {
                             totalCost += cost;
                             amountToWithdraw -= cost;
 
-                            message.append(quantity).append(" 个 ").append(item.getName().getString()).append("\n");
+                            message.append(Text.translatable("message.withdraw.item", quantity, item.getName().getString()).getString()).append("\n");
 
                             if (amountToWithdraw <= 0) {
                                 break;
                             }
                         } else {
-                            playerEntity.sendMessage(Text.literal("余额不足，无法提取 " + quantity + " 个 " + item.getName().getString() + "。"), false);
+                            playerEntity.sendMessage(Text.translatable("message.withdraw.insufficient_balance", quantity, item.getName().getString()), false);
                         }
                     }
                 }
             }
-
             if (totalCost > 0) {
                 playerEntity.sendMessage(Text.literal(message.toString()), false);
             } else if (amountToWithdraw > 0) {
-                playerEntity.sendMessage(Text.literal("余额不足，无法完全提取。"), false);
+                playerEntity.sendMessage(Text.translatable("message.withdraw.not_enough_funds"), false);
             }
         }
-
         return 0;
     }
 
-
-
-
     private static int reload(CommandContext<ServerCommandSource> context) {
         EcoAPI.reload();
+        context.getSource().sendFeedback(()->Text.translatable("message.reload"),false);
         return 0;
     }
     private static int handle(CommandContext<ServerCommandSource> context) {
@@ -193,12 +188,13 @@ public class CommandEco {
 
         PlayerManager playerManager = context.getSource().getServer().getPlayerManager();
         PlayerEntity targetEntity = playerManager.getPlayer(playerName);
-        if(targetEntity == null) return 1;
+        if (targetEntity == null) return 1;
+
         var ecoManager = ((EcoManagerAccessor) (targetEntity)).getEcoManager();
         ecoManager.ecoProfile.balance = amount;
         ecoManager.save();
 
-        context.getSource().sendFeedback(() -> Text.literal("§b已将 " + playerName + " 的余额设置为 " + amount), false);
+        context.getSource().sendFeedback(() -> Text.translatable("message.set_balance", playerName, amount), false);
         return 0;
     }
 
@@ -208,15 +204,15 @@ public class CommandEco {
 
         PlayerManager playerManager = context.getSource().getServer().getPlayerManager();
         PlayerEntity targetEntity = playerManager.getPlayer(playerName);
-        if(targetEntity == null) return 1;
+        if (targetEntity == null) return 1;
+
         var ecoManager = ((EcoManagerAccessor) (targetEntity)).getEcoManager();
         ecoManager.ecoProfile.balance += amount;
         ecoManager.save();
 
-        context.getSource().sendFeedback(() -> Text.literal("§b已向 " + playerName + " 的账户添加 " + amount), false);
+        context.getSource().sendFeedback(() -> Text.translatable("message.add_balance", playerName, amount), false);
         return 0;
     }
-
 
     private static int handleRemoveAmount(CommandContext<ServerCommandSource> context) {
         String playerName = StringArgumentType.getString(context, "player");
@@ -224,12 +220,14 @@ public class CommandEco {
 
         PlayerManager playerManager = context.getSource().getServer().getPlayerManager();
         PlayerEntity targetEntity = playerManager.getPlayer(playerName);
-        if(targetEntity == null) return 1;
+        if (targetEntity == null) return 1;
+
         var ecoManager = ((EcoManagerAccessor) (targetEntity)).getEcoManager();
         ecoManager.ecoProfile.balance -= amount;
         ecoManager.save();
 
-        context.getSource().sendFeedback(() -> Text.literal("§b已从 " + playerName + " 的账户移除 " + amount), false);
+        context.getSource().sendFeedback(() -> Text.translatable("message.remove_balance", playerName, amount), false);
         return 0;
     }
+
 }

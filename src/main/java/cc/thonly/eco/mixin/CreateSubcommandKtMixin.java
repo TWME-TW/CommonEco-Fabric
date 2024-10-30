@@ -33,7 +33,7 @@ public class CreateSubcommandKtMixin {
         BlockPos blockPos2 = session.getPos2();
         int size = calculateVolume(blockPos1,blockPos2);
         if (ecoManager != null && !(player.hasPermissionLevel(2)) && ecoManager.ecoProfile.balance < size * ConfigObj.eco_block_ratio) {
-            context.getSource().sendFeedback(() -> Text.literal("§c你的余额不足,创建该领地需要 "+size * ConfigObj.eco_block_ratio), false);
+            context.getSource().sendFeedback(() -> Text.translatable("message.enclosure.insufficient_balance",size * ConfigObj.eco_block_ratio), false);
             ci.cancel();
         }
     }

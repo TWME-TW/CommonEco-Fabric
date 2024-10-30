@@ -13,12 +13,12 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
 public class CommandPay {
-    public static void register(CommandDispatcher<ServerCommandSource> serverCommandSourceCommandDispatcher,
-                                CommandRegistryAccess commandRegistryAccess,
-                                CommandManager.RegistrationEnvironment registrationEnvironment) {
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher,
+                                CommandRegistryAccess registryAccess,
+                                CommandManager.RegistrationEnvironment environment) {
         String[] l = {"pay"};
         for (String cmd : l) {
-            serverCommandSourceCommandDispatcher.register(CommandManager.literal(cmd)
+            dispatcher.register(CommandManager.literal(cmd)
                     .then(CommandManager.argument("player", StringArgumentType.string())
                             .suggests(CommandPlayerSuggestionProvider.create())
                             .then(CommandManager.argument("amount", DoubleArgumentType.doubleArg())
@@ -28,39 +28,42 @@ public class CommandPay {
             );
         }
     }
+
     public static int target(CommandContext<ServerCommandSource> context) {
         PlayerManager playerManager = context.getSource().getServer().getPlayerManager();
         String player = StringArgumentType.getString(context, "player");
-        Double amount = DoubleArgumentType.getDouble(context, "amount");
+        double amount = DoubleArgumentType.getDouble(context, "amount");
         PlayerEntity playerEntity = context.getSource().getPlayer();
 
-        if(playerEntity == null) return 1;
+        if (playerEntity == null) return 1;
 
         if (amount <= 0) {
-            context.getSource().sendFeedback(() -> Text.literal("§c转账金额必须为正数"), false);
+            context.getSource().sendFeedback(() -> Text.translatable("message.pay.invalid_amount"), false);
             return 1;
         }
 
         PlayerEntity targetEntity = playerManager.getPlayer(player);
 
         if (targetEntity == null) {
-            context.getSource().sendFeedback(() -> Text.literal("§c目标玩家不存在"), false);
+            context.getSource().sendFeedback(() -> Text.translatable("message.pay.target_not_found"), false);
             return 2;
         }
 
-        var ecoManager = ((EcoManagerAccessor) (playerEntity)).getEcoManager();
-        var targetEcoManager = ((EcoManagerAccessor) (targetEntity)).getEcoManager();
+        var ecoManager = ((EcoManagerAccessor) playerEntity).getEcoManager();
+        var targetEcoManager = ((EcoManagerAccessor) targetEntity).getEcoManager();
 
         if (ecoManager.ecoProfile.balance >= amount) {
             ecoManager.ecoProfile.balance -= amount;
             targetEcoManager.ecoProfile.balance += amount;
             ecoManager.save();
             targetEcoManager.save();
-            context.getSource().sendFeedback(() -> Text.literal("§e已向 " + player + " 的账户余额转账 " + amount + "，你现在的余额为 " + ecoManager.ecoProfile.balance), false);
-            targetEntity.getCommandSource().sendFeedback(() -> Text.literal("§e你已收到来自 " + playerEntity.getName().getString() + " 的转账 " + amount), false);
+
+            context.getSource().sendFeedback(() -> Text.translatable("message.pay.success_sender", player, amount, ecoManager.ecoProfile.balance), false);
+            targetEntity.getCommandSource().sendFeedback(() -> Text.translatable("message.pay.success_receiver", playerEntity.getName().getString(), amount), false);
         } else {
-            context.getSource().sendFeedback(() -> Text.literal("§c你账户余额不足"), false);
+            context.getSource().sendFeedback(() -> Text.translatable("message.pay.insufficient_balance"), false);
         }
+
         return 0;
     }
 }
