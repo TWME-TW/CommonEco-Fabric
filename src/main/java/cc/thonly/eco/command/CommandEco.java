@@ -3,27 +3,30 @@ package cc.thonly.eco.command;
 import cc.thonly.eco.api.CurrencyRegistry;
 import cc.thonly.eco.api.EcoAPI;
 import cc.thonly.eco.api.EcoItem;
-import cc.thonly.eco.api.EcoManager;
 import cc.thonly.eco.impl.EcoManagerAccessor;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import org.spongepowered.asm.mixin.injection.struct.InjectorGroupInfo;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -69,17 +72,47 @@ public class CommandEco {
                     .then(CommandManager.literal("register")
                             .requires(source -> source.hasPermissionLevel(2))
                             .then(CommandManager.argument("amount", DoubleArgumentType.doubleArg())
-                                    .executes(CommandEco::register)
+                                    .executes(CommandEco::registerItem)
                             )
                     )
                     .then(CommandManager.literal("unregister")
                             .requires(source -> source.hasPermissionLevel(2))
-                            .executes(CommandEco::unregister)
+                            .executes(CommandEco::unregisterItem)
+                    )
+                    .then(CommandManager.literal("execute")
+                            .requires(source -> source.hasPermissionLevel(2))
+                            .then(CommandManager.argument("condition", DoubleArgumentType.doubleArg())
+                                    .then(CommandManager.argument("command", StringArgumentType.string())
+                                            .then(CommandManager.argument("deduct", BoolArgumentType.bool())
+                                                    .executes((context) -> {
+                                                        boolean deduct = BoolArgumentType.getBool(context, "deduct");
+                                                        return CommandEco.execute(context, deduct);
+                                                    })
+                                            )
+                                            .executes((context) -> {
+                                                return CommandEco.execute(context, true);
+                                            })
+                                    )
+                            )
+                    )
+                    .then(CommandManager.literal("sign")
+                            .requires(source -> source.hasPermissionLevel(2))
+                            .then(CommandManager.argument("condition", DoubleArgumentType.doubleArg())
+                                    .then(CommandManager.argument("command", StringArgumentType.string())
+                                            .then(CommandManager.argument("deduct", BoolArgumentType.bool())
+                                                    .executes((context) -> {
+                                                        boolean deduct = BoolArgumentType.getBool(context, "deduct");
+                                                        return CommandEco.getSign(context, deduct);
+                                                    })
+                                            )
+                                            .executes((context) -> CommandEco.getSign(context, true))
+                                    )
+                            )
                     )
             );
         }
     }
-    public static int register(CommandContext<ServerCommandSource> context) {
+    public static int registerItem(CommandContext<ServerCommandSource> context) {
         if(!context.getSource().isExecutedByPlayer()) return 1;
         PlayerEntity player = context.getSource().getPlayer();
         Item handItem = player.getMainHandStack().getItem();
@@ -89,7 +122,7 @@ public class CommandEco {
         context.getSource().sendFeedback(() -> Text.translatable("message.currency.registered"), false);
         return 0;
     }
-    public static int unregister(CommandContext<ServerCommandSource> context) {
+    public static int unregisterItem(CommandContext<ServerCommandSource> context) {
         if(!context.getSource().isExecutedByPlayer()) return 1;
         PlayerEntity player = context.getSource().getPlayer();
         Item handItem = player.getMainHandStack().getItem();
@@ -97,6 +130,71 @@ public class CommandEco {
         context.getSource().sendFeedback(() -> Text.translatable("message.currency.unregistered"), false);
         return 0;
     }
+    public static int getSign(CommandContext<ServerCommandSource> context, boolean deduct) {
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
+        PlayerEntity player = source.getPlayer();
+        double condition = DoubleArgumentType.getDouble(context, "condition");
+        String commandArg = StringArgumentType.getString(context, "command");
+
+        if (player != null) {
+            commandArg = commandArg.replaceAll("\"", "\\\"");
+
+            String ecoCmd = "eco execute " + condition + " \\\\\"" + commandArg + "\\\\\" " + deduct;
+
+            String cmd = "give " + player.getName().getString() + " oak_sign[block_entity_data={id:oak_sign,front_text:{messages:['{\"text\":\"say hello\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"" + ecoCmd + "\"}}','[\" \"]','[\" \"]','[\" \"]']}}]";
+
+            System.out.println(cmd);
+
+            try {
+                server.getCommandManager().executeWithPrefix(source, cmd);
+            } catch (Exception e) {
+                source.sendMessage(Text.translatable("command.execution.failed"));
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
+
+    public static int execute(CommandContext<ServerCommandSource> context, boolean deduct) {
+        double condition = DoubleArgumentType.getDouble(context, "condition");
+        String commandArg = StringArgumentType.getString(context, "command");
+        ArrayList<String> CommandArray = new ArrayList<>();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
+        PlayerEntity player = source.getPlayer();
+
+        System.out.println(context.getSource().getPlayer().getName().getString());
+
+        if (player != null && commandArg != null) {
+            commandArg = commandArg.replaceAll("%player%", player.getName().getString());
+            var manager = EcoAPI.getEcoManager(player);
+
+            if (deduct && manager.ecoProfile.balance < condition) {
+                source.sendMessage(Text.translatable("message.pay.insufficient_balance"));
+                return 1;
+            }
+
+            String[] commands = commandArg.split("&&");
+            for (String command : commands) {
+                CommandArray.add(command.trim());
+            }
+
+            for (String command : CommandArray) {
+                server.getCommandManager().executeWithPrefix(source, command);
+            }
+
+            if (deduct) {
+                manager.ecoProfile.balance -= condition;
+                source.sendMessage(Text.translatable("command.balance.self", manager.ecoProfile.balance));
+            }
+        }
+
+        return 0;
+    }
+
     public static int store(CommandContext<ServerCommandSource> context) {
         PlayerManager playerManager = context.getSource().getServer().getPlayerManager();
         PlayerEntity playerEntity = playerManager.getPlayer(context.getSource().getName());
@@ -229,5 +327,8 @@ public class CommandEco {
         context.getSource().sendFeedback(() -> Text.translatable("message.remove_balance", playerName, amount), false);
         return 0;
     }
-
+    public static String decodeBase64(String base64) {
+        byte[] decodedBytes = Base64.getDecoder().decode(base64);
+        return new String(decodedBytes);
+    }
 }

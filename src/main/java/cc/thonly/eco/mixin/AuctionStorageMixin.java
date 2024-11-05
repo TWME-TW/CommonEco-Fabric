@@ -21,7 +21,7 @@ import systems.brn.servershop.lib.storages.AuctionStorage;
 import java.util.ArrayList;
 
 @Pseudo
-@Mixin(AuctionStorage.class)
+@Mixin(value = AuctionStorage.class, remap = false)
 public abstract class AuctionStorageMixin {
     @Shadow @Final public ArrayList<AuctionRecord> auctions;
 

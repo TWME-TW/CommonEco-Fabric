@@ -58,6 +58,8 @@ dependencies {
 	modImplementation("xyz.nucleoid:server-translations-api:${project.server_translations_api_version}")
 	modImplementation include("eu.pb4:sgui:${project.servergui_version}")
 	modImplementation include("eu.pb4:placeholder-api:${project.placeholder_api}")
+
+	modImplementation(include("eu.pb4:placeholder-api:2.4.0+1.21"))
 }
 
 processResources {
