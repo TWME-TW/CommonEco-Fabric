@@ -1,6 +1,4 @@
-package cc.thonly.eco.impl;
-
-import cc.thonly.eco.api.EcoManager;
+package cc.thonly.eco.api;
 
 public interface EcoManagerAccessor {
     public EcoManager getEcoManager();

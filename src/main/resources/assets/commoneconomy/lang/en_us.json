@@ -27,5 +27,7 @@
   "message.pay.insufficient_balance": "§cInsufficient balance in your account",
   "message.enclosure.insufficient_balance": "§cInsufficient balance, creating this enclosure costs %s",
   "message.enclosure.sel_size": "§eSelected area size: %s",
-  "message.enclosure.sel_cost": "§eEstimated cost: %s"
+  "message.enclosure.sel_cost": "§eEstimated cost: %s",
+  "message.enclosure.expand.success": "§eSuccessful expansion of territory, a total of %s was spent",
+  "message.enclosure.expand.fail.amount": "§eLand expansion failed, you need a balance greater than %s"
 }

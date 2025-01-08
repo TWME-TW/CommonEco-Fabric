@@ -6,13 +6,15 @@
     "AuctionStorageMixin",
     "CommandRegistryMixin",
     "CreateSubcommandKtMixin",
+    "EnclosureCommandKtMixin",
     "MinecraftServerMixin",
     "PlayerEntityMixin",
     "ServerPlayerEntityMixin",
     "SessionListenerCompanionAccessor",
     "SessionListenerMixin",
     "ShopFunctionsMixin",
-    "UpdateCheckerMixin"
+    "UpdateCheckerMixin",
+    "impl.EnclosureCommandKtInvoker"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,7 +1,7 @@
 package cc.thonly.eco.mixin;
 
 import cc.thonly.eco.api.EcoManager;
-import cc.thonly.eco.impl.EcoManagerAccessor;
+import cc.thonly.eco.api.EcoManagerAccessor;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;

@@ -1,6 +1,6 @@
 package cc.thonly.eco.command;
 
-import cc.thonly.eco.impl.EcoManagerAccessor;
+import cc.thonly.eco.api.EcoManagerAccessor;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;

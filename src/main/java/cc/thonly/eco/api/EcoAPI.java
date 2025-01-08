@@ -1,7 +1,6 @@
 package cc.thonly.eco.api;
 
 import cc.thonly.eco.EcoConfig;
-import cc.thonly.eco.impl.EcoManagerAccessor;
 import net.minecraft.entity.player.PlayerEntity;
 
 import java.util.LinkedHashMap;

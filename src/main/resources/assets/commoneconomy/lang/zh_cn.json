@@ -27,5 +27,7 @@
   "message.pay.insufficient_balance": "§c你账户余额不足",
   "message.enclosure.insufficient_balance": "§c你的余额不足,创建该领地需要 %s",
   "message.enclosure.sel_size": "§e选区大小: %s",
-  "message.enclosure.sel_cost": "§e预计花费: %s"
+  "message.enclosure.sel_cost": "§e预计花费: %s",
+  "message.enclosure.expand.success": "§e领地拓展成功, 一共花费了 %s",
+  "message.enclosure.expand.fail.amount": "§e领地拓展失败, 你需要余额大于 %s"
 }
