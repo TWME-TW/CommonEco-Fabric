@@ -59,7 +59,7 @@ dependencies {
 	modImplementation include("eu.pb4:sgui:${project.servergui_version}")
 	modImplementation include("eu.pb4:placeholder-api:${project.placeholder_api}")
 
-	modImplementation(include("eu.pb4:placeholder-api:2.6.3+"))
+	modImplementation(include("eu.pb4:placeholder-api:2.8.1+"))
 }
 
 processResources {
